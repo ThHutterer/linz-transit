@@ -13,16 +13,16 @@ def get_schema():
     options = [
         schema.Option(
             display = "Kudlichstraße",
-            value = "Linz/Donau Kudlichstraße",
+            value = "Kudlichstraße",
         ),
         schema.Option(
             display = "Landwiedstraße",
-            value = "Linz/Donau Landwiedstraße",
+            value = "Landwiedstraße",
         ),
     ]
 
     return schema.Schema(
-        version = "0.1",
+        version = "1",
         fields = [
             schema.Dropdown(
                 id = "location",
