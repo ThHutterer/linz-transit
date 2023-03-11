@@ -1,0 +1,96 @@
+{
+    "stopLocationOrCoordLocation": [
+        {
+            "StopLocation": {
+                "LocationNotes": {
+                    "LocationNote": [
+                        {
+                            "value": "Fahrradbeförderung",
+                            "key": "FB",
+                            "type": "A",
+                            "txtN": "Fahrradbeförderung"
+                        },
+                        {
+                            "value": "bike&ride",
+                            "key": "br",
+                            "type": "A",
+                            "txtN": "bike&ride"
+                        },
+                        {
+                            "value": "Bike&Ride",
+                            "key": "BR",
+                            "type": "A",
+                            "txtN": "Bike&Ride"
+                        }
+                    ]
+                },
+                "productAtStop": [
+                    {
+                        "icon": {
+                            "foregroundColor": {
+                                "r": 255,
+                                "g": 255,
+                                "b": 255,
+                                "hex": "#FFFFFF"
+                            },
+                            "backgroundColor": {
+                                "r": 0,
+                                "g": 121,
+                                "b": 58,
+                                "hex": "#00793A"
+                            },
+                            "res": "prod_bus",
+                            "txtS": "27"
+                        },
+                        "name": "Autobus 27",
+                        "internalName": "27",
+                        "line": "27",
+                        "lineId": "esg-2-27-E-a22-1",
+                        "cls": "128",
+                        "catOutS": "e00",
+                        "catOutL": "Autobus",
+                        "operatorCode": "1",
+                        "operator": "Linz Linien GmbH",
+                        "admin": "e01LL_"
+                    }
+                ],
+                "altId": [
+                    "at:44:41278:0:0"
+                ],
+                "mainMastAltId": [
+                    "at:44:41278"
+                ],
+                "timezoneOffset": 60,
+                "id": "A=1@O=Linz/Donau Ghegastraße@X=14284785@Y=48285162@u=84@U=81@L=444127899@i=A×at:44:41278:0:0@",
+                "extId": "444127899",
+                "hasMainMast": true,
+                "mainMastId": "A=1@O=Linz/Donau Ghegastraße@X=14284722@Y=48285234@U=81@L=444127800@i=A×at:44:41278@",
+                "mainMastExtId": "444127800",
+                "mainMastLon": 14.284722,
+                "mainMastLat": 48.285234,
+                "name": "Linz/Donau Ghegastraße",
+                "lon": 14.284785,
+                "lat": 48.285162,
+                "weight": 56,
+                "dist": 84,
+                "products": 128,
+                "entry": true
+            }
+        }
+    ],
+    "TechnicalMessages": {
+        "TechnicalMessage": [
+            {
+                "value": "2023-03-11 11:19:30",
+                "key": "requestTime"
+            },
+            {
+                "value": "ttp=15714#16049 plancode0=1l5ed planid=1678489923 planid0=1678489923 planid_adr=1674027008 plancode_adr=yyhsi planid_adr=1644592014 plancode_adr=hflls planid_poi=1678494416 plancode_poi=1l8u6 srvv=5.45.KGOEVV.14.0.3 (customer/hcuvao/release/2022.q4.1) [Dec 13 2022] tlibv=TRFVER: rel/vao/5.01.1 2022-11-22 17:59:51 +0100 VAO_TARIF v1.35 + Relay_EnrichmentProxy v1 jno=1",
+                "key": "backendInfo"
+            }
+        ]
+    },
+    "serverVersion": "2.30.0",
+    "dialectVersion": "2.30",
+    "requestId": "a924sjiqwugp9g8g"
+}
