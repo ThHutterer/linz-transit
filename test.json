@@ -1,3 +1,4 @@
+
 {
     "stopLocationOrCoordLocation": [
         {
@@ -76,12 +77,222 @@
                 "products": 128,
                 "entry": true
             }
+        },
+        {
+            "StopLocation": {
+                "LocationNotes": {
+                    "LocationNote": [
+                        {
+                            "value": "Fahrradbeförderung",
+                            "key": "FB",
+                            "type": "A",
+                            "txtN": "Fahrradbeförderung"
+                        },
+                        {
+                            "value": "bike&ride",
+                            "key": "br",
+                            "type": "A",
+                            "txtN": "bike&ride"
+                        },
+                        {
+                            "value": "Bike&Ride",
+                            "key": "BR",
+                            "type": "A",
+                            "txtN": "Bike&Ride"
+                        }
+                    ]
+                },
+                "productAtStop": [
+                    {
+                        "icon": {
+                            "foregroundColor": {
+                                "r": 255,
+                                "g": 255,
+                                "b": 255,
+                                "hex": "#FFFFFF"
+                            },
+                            "backgroundColor": {
+                                "r": 0,
+                                "g": 121,
+                                "b": 58,
+                                "hex": "#00793A"
+                            },
+                            "res": "prod_bus",
+                            "txtS": "12"
+                        },
+                        "name": "Autobus 12",
+                        "internalName": "12",
+                        "line": "12",
+                        "lineId": "esg-2-12-E-a22-1",
+                        "cls": "128",
+                        "catOutS": "e00",
+                        "catOutL": "Autobus",
+                        "operatorCode": "1",
+                        "operator": "Linz Linien GmbH",
+                        "admin": "e01LL_"
+                    },
+                    {
+                        "icon": {
+                            "foregroundColor": {
+                                "r": 255,
+                                "g": 255,
+                                "b": 255,
+                                "hex": "#FFFFFF"
+                            },
+                            "backgroundColor": {
+                                "r": 0,
+                                "g": 121,
+                                "b": 58,
+                                "hex": "#00793A"
+                            },
+                            "res": "prod_bus",
+                            "txtS": "27"
+                        },
+                        "name": "Autobus 27",
+                        "internalName": "27",
+                        "line": "27",
+                        "lineId": "esg-2-27-E-a22-1",
+                        "cls": "128",
+                        "catOutS": "e00",
+                        "catOutL": "Autobus",
+                        "operatorCode": "1",
+                        "operator": "Linz Linien GmbH",
+                        "admin": "e01LL_"
+                    }
+                ],
+                "altId": [
+                    "at:44:41196:0:1"
+                ],
+                "mainMastAltId": [
+                    "at:44:41196"
+                ],
+                "timezoneOffset": 60,
+                "id": "A=1@O=Linz/Donau Kudlichstraße@X=14286322@Y=48285467@u=94@U=81@L=444119601@i=A×at:44:41196:0:1@",
+                "extId": "444119601",
+                "hasMainMast": true,
+                "mainMastId": "A=1@O=Linz/Donau Kudlichstraße@X=14285972@Y=48285144@U=81@L=444119600@i=A×at:44:41196@",
+                "mainMastExtId": "444119600",
+                "mainMastLon": 14.285972,
+                "mainMastLat": 48.285144,
+                "name": "Linz/Donau Kudlichstraße",
+                "lon": 14.286322,
+                "lat": 48.285467,
+                "weight": 183,
+                "dist": 94,
+                "products": 128,
+                "entry": true
+            }
+        },
+        {
+            "StopLocation": {
+                "LocationNotes": {
+                    "LocationNote": [
+                        {
+                            "value": "Fahrradbeförderung",
+                            "key": "FB",
+                            "type": "A",
+                            "txtN": "Fahrradbeförderung"
+                        },
+                        {
+                            "value": "bike&ride",
+                            "key": "br",
+                            "type": "A",
+                            "txtN": "bike&ride"
+                        },
+                        {
+                            "value": "Bike&Ride",
+                            "key": "BR",
+                            "type": "A",
+                            "txtN": "Bike&Ride"
+                        }
+                    ]
+                },
+                "productAtStop": [
+                    {
+                        "icon": {
+                            "foregroundColor": {
+                                "r": 255,
+                                "g": 255,
+                                "b": 255,
+                                "hex": "#FFFFFF"
+                            },
+                            "backgroundColor": {
+                                "r": 0,
+                                "g": 121,
+                                "b": 58,
+                                "hex": "#00793A"
+                            },
+                            "res": "prod_bus",
+                            "txtS": "12"
+                        },
+                        "name": "Autobus 12",
+                        "internalName": "12",
+                        "line": "12",
+                        "lineId": "esg-2-12-E-a22-1",
+                        "cls": "128",
+                        "catOutS": "e00",
+                        "catOutL": "Autobus",
+                        "operatorCode": "1",
+                        "operator": "Linz Linien GmbH",
+                        "admin": "e01LL_"
+                    },
+                    {
+                        "icon": {
+                            "foregroundColor": {
+                                "r": 255,
+                                "g": 255,
+                                "b": 255,
+                                "hex": "#FFFFFF"
+                            },
+                            "backgroundColor": {
+                                "r": 0,
+                                "g": 121,
+                                "b": 58,
+                                "hex": "#00793A"
+                            },
+                            "res": "prod_bus",
+                            "txtS": "27"
+                        },
+                        "name": "Autobus 27",
+                        "internalName": "27",
+                        "line": "27",
+                        "lineId": "esg-2-27-E-a22-1",
+                        "cls": "128",
+                        "catOutS": "e00",
+                        "catOutL": "Autobus",
+                        "operatorCode": "1",
+                        "operator": "Linz Linien GmbH",
+                        "admin": "e01LL_"
+                    }
+                ],
+                "altId": [
+                    "at:44:41196:0:2"
+                ],
+                "mainMastAltId": [
+                    "at:44:41196"
+                ],
+                "timezoneOffset": 60,
+                "id": "A=1@O=Linz/Donau Kudlichstraße@X=14284219@Y=48285306@u=96@U=81@L=444119602@i=A×at:44:41196:0:2@",
+                "extId": "444119602",
+                "hasMainMast": true,
+                "mainMastId": "A=1@O=Linz/Donau Kudlichstraße@X=14285972@Y=48285144@U=81@L=444119600@i=A×at:44:41196@",
+                "mainMastExtId": "444119600",
+                "mainMastLon": 14.285972,
+                "mainMastLat": 48.285144,
+                "name": "Linz/Donau Kudlichstraße",
+                "lon": 14.284219,
+                "lat": 48.285306,
+                "weight": 183,
+                "dist": 96,
+                "products": 128,
+                "entry": true
+            }
         }
     ],
     "TechnicalMessages": {
         "TechnicalMessage": [
             {
-                "value": "2023-03-11 11:19:30",
+                "value": "2023-03-11 11:24:20",
                 "key": "requestTime"
             },
             {
@@ -92,5 +303,5 @@
     },
     "serverVersion": "2.30.0",
     "dialectVersion": "2.30",
-    "requestId": "a924sjiqwugp9g8g"
+    "requestId": "2zicmjg8wuwk8wcs"
 }
