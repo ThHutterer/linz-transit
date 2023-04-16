@@ -17,22 +17,48 @@ BASE_REST_CALL = """https://routenplaner.verkehrsauskunft.at/vao/restproxy/v1.6.
 def main(config):
     """main app function"""
 
-    stop_info = get_stop_infos(config)
+    #This is the dict which gets filled with infos from the rest calls
+    response_dict = {
+        "error": "No error",
+        "stop_name": "No stop name",
+        "stop_id": "No stop id",
+    }
+
+    #Get the infos of the nearest stop
+    stop_info = get_stop_infos(config, response_dict)
     #print(stop_info)
 
-    return render.Root(
-        child = render.Row(
-            children = [
-                render.WrappedText(
-                    content = stop_info,
-                    color = "#FFFFFF",
-                    align = "left",
-                    ),
-            ]
+    if response_dict["error"] != "No error":
+        return render.Root(
+            child = render.Row(
+                children = [
+                    render.WrappedText(
+                        content = stop_info["error"],
+                        color = "#FFFFFF",
+                        align = "left",
+                        ),
+                ]
+            )
         )
-    )
+    else:
+        return render.Root(
+            child = render.Row(
+                children = [
+                    render.WrappedText(
+                        content = stop_info["stop_name"],
+                        color = "#FFFFFF",
+                        align = "left",
+                        ),
+                    render.WrappedText(
+                        content = stop_info["stop_id"],
+                        color = "#FFFFFF",
+                        align = "right",
+                        ),
+                ]
+            )
+        )
 
-def get_stop_infos(config):
+def get_stop_infos(config, response_dict):
     """gets the stop infos from the VAO API.
     Args:
         config: is a dict from the schema"""
@@ -48,15 +74,20 @@ def get_stop_infos(config):
         long = loc["lng"],
         maxNo = "1"
     )
+
     response = http.get(url = rest_call_stop_info)
     if response.status_code != 200:
-        return "Request failed with status {statuscode}".format(
-        statuscode = response.status_code
+        response_dict["error"] = "Request failed with status {statuscode}".format(
+            statuscode = response.status_code
         )
+        return response_dict
 
     data = json.decode(response.body())
-    print(data["stopLocationOrCoordLocation"])
-    return "Hello"
+    response_dict["stop_name"] = data['stopLocationOrCoordLocation'][0]['StopLocation']['name']
+    response_dict["stop_id"] = data['stopLocationOrCoordLocation'][0]['StopLocation']['extId']
+    print(response_dict)
+
+    return response_dict
 
 
 def get_schema():
