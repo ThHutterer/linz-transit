@@ -42,21 +42,20 @@ def main(config):
         )
     else:
         return render.Root(
-            child = render.Row(
+            child = render.Column(
                 children = [
-                    render.WrappedText(
-                        content = stop_info["stop_name"],
-                        color = "#FFFFFF",
-                        align = "left",
+                    render.Marquee(
+                        width = 64,
+                        child = render.Text(content = stop_info["stop_name"], color = "#FFFFFF"),
                         ),
-                    render.WrappedText(
-                        content = stop_info["stop_id"],
-                        color = "#FFFFFF",
-                        align = "right",
+                    render.Marquee(
+                        width = 64,
+                        child = render.Text(content = stop_info["stop_id"], color = "#FFFFFF"),
                         ),
-                ]
-            )
+                ],
+            ),
         )
+
 
 def get_stop_infos(config, response_dict):
     """gets the stop infos from the VAO API.
@@ -83,8 +82,13 @@ def get_stop_infos(config, response_dict):
         return response_dict
 
     data = json.decode(response.body())
-    response_dict["stop_name"] = data['stopLocationOrCoordLocation'][0]['StopLocation']['name']
-    response_dict["stop_id"] = data['stopLocationOrCoordLocation'][0]['StopLocation']['extId']
+    #if key 'stopLocationOrCoordLocation' is not in data, set response_dict["error"] to "No stop found within 1000 metres" and return
+    if "stopLocationOrCoordLocation" not in data:
+        response_dict["error"] = "No stop found within 1000 metres"
+        return response_dict
+    else:
+        response_dict["stop_name"] = data['stopLocationOrCoordLocation'][0]['StopLocation']['name']
+        response_dict["stop_id"] = data['stopLocationOrCoordLocation'][0]['StopLocation']['extId']
     print(response_dict)
 
     return response_dict
