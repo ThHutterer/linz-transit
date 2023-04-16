@@ -20,6 +20,7 @@ BASE_REST_CALL = """https://routenplaner.verkehrsauskunft.at/vao/restproxy/v1.6.
 
 def main(config):
     """main app function"""
+
     response_dict = {
         "error": "No error",
         "stop_name": "No stop name",
@@ -30,7 +31,7 @@ def main(config):
         "next_departure_colors": ["No next departures"],
         "next_departure_times_until": ["No next departures"],
     }
-
+    #Check if the response_dict is cached
     response_dict_cached = cache.get("response_dict")
     if response_dict_cached != None:
         print("Using cached response_dict")
@@ -43,11 +44,13 @@ def main(config):
         #Get the next departures if stop was found
         if ((response_dict["error"] == "No error") and (response_dict["stop_id"] != "No stop id") and (response_dict["stop_name"] != "No stop name")):
             response_dict = get_next_departures(config, response_dict)
-        cache.set("response_dict", str(response_dict), 60)
 
-    #Calculate the time until the departures
+        #Calculate the time until the departures
+
+        cache.set("response_dict", str(response_dict), 9)
+
     #response_dict = calculate_time_until(response_dict)
-
+    #print(response_dict)
     #Render the results
     if response_dict["error"] != "No error":
         return render.Root(
@@ -102,6 +105,7 @@ def get_stop_infos(config, response_dict):
         long = loc["lng"],
         maxNo = "1"
     )
+    print(rest_call_stop_info)
 
     response = http.get(url = rest_call_stop_info)
     if response.status_code != 200:
@@ -155,14 +159,16 @@ def get_next_departures(config, response_dict):
 
     return response_dict
 
-#def calculate_time_until(response_dict):
+def calculate_time_until(response_dict):
     """calculates the time until the next departures.
     Args:
         response_dict: is a dict with the next departures"""
 
     #Get the current time
-    #now = time.now()
-    
+    now = time.now()
+    #deptime = time.parse_time("2000-03-11T11:27:00.00Z")
+    print(now)
+    print(response_dict["next_departure_times"][0])
 
     #Calculate the time until the next departures
     #for i in range(0, len(response_dict["next_departure_times"])):
@@ -177,7 +183,7 @@ def get_next_departures(config, response_dict):
         #Add the time until the next departure to the response_dict
         #response_dict["next_departure_times_until"].append(time_until)
 
-    #return response_dict
+    return response_dict
 
 
 def get_schema():
