@@ -27,6 +27,7 @@ def main(config):
         "stop_id": "No stop id",
         "next_departure_lines": ["No next departures"],
         "next_departure_times": ["No next departures"],
+        "next_departure_dates": ["No next departures"],
         "next_departure_destinations": ["No next departures"],
         "next_departure_colors": ["No next departures"],
         "next_departure_times_until": ["No next departures"],
@@ -49,7 +50,8 @@ def main(config):
 
         cache.set("response_dict", str(response_dict), 9)
 
-    #response_dict = calculate_time_until(response_dict)
+    response_dict = calculate_time_until(response_dict)
+
     #print(response_dict)
     #Render the results
     if response_dict["error"] != "No error":
@@ -60,29 +62,45 @@ def main(config):
                         content = response_dict["error"],
                         color = "#FFFFFF",
                         align = "left",
-                        ),
+                        )
                 ]
             )
         )
     else:
         return render.Root(
+            show_full_animation = True,
             child = render.Column(
                 children = [
+                    render.Row(
+                        children = [
+                        render.Box(
+                            color = "FFFFFF",
+                            width = 10,
+                            height = 10,
+                            ),
+                        render.Marquee(
+                            width = 64,
+                            child = render.Text(content = response_dict["stop_name"], color = "FFFFFF"),
+                            ),
+                        ]
+                    ),
                     render.Marquee(
                         width = 64,
-                        child = render.Text(content = response_dict["stop_name"], color = "#FFFFFF"),
+                        child = render.Text(content = response_dict["next_departure_lines"][0]
+                         + " Destination: " + response_dict["next_departure_destinations"][0],
+                         color = response_dict["next_departure_colors"][0]),
                         ),
                     render.Marquee(
                         width = 64,
-                        child = render.Text(content = response_dict["next_departure_lines"][0], color = "#FFFFFF"),
+                        child = render.Text(content = response_dict["next_departure_lines"][1]
+                         + " Destination: " + response_dict["next_departure_destinations"][1],
+                         color = response_dict["next_departure_colors"][1]),
                         ),
                     render.Marquee(
                         width = 64,
-                        child = render.Text(content = response_dict["next_departure_lines"][1], color = "#FFFFFF"),
-                        ),
-                    render.Marquee(
-                        width = 64,
-                        child = render.Text(content = response_dict["next_departure_lines"][2], color = "#FFFFFF"),
+                        child = render.Text(content = response_dict["next_departure_lines"][3]
+                         + " Destination: " + response_dict["next_departure_destinations"][3],
+                         color = response_dict["next_departure_colors"][3]),
                         ),
                 ],
             ),
@@ -105,7 +123,7 @@ def get_stop_infos(config, response_dict):
         long = loc["lng"],
         maxNo = "1"
     )
-    print(rest_call_stop_info)
+    #print(rest_call_stop_info)
 
     response = http.get(url = rest_call_stop_info)
     if response.status_code != 200:
@@ -122,6 +140,7 @@ def get_stop_infos(config, response_dict):
     else:
         response_dict["stop_name"] = data['stopLocationOrCoordLocation'][0]['StopLocation']['name']
         response_dict["stop_id"] = data['stopLocationOrCoordLocation'][0]['StopLocation']['extId']
+    #print(response_dict)
 
     return response_dict
 
@@ -154,6 +173,8 @@ def get_next_departures(config, response_dict):
     else:
         response_dict["next_departure_lines"] = [entry["name"] for entry in data['Departure']]
         response_dict["next_departure_times"] = [entry["time"] for entry in data['Departure']]
+        response_dict["next_departure_dates"] = [entry["date"] for entry in data['Departure']]
+        response_dict["next_departure_colors"] = [entry["ProductAtStop"]["icon"]["backgroundColor"]["hex"] for entry in data['Departure']]
         response_dict["next_departure_destinations"] = [entry["direction"] for entry in data['Departure']]
     #print(response_dict)
 
