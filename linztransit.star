@@ -14,6 +14,8 @@ DEFAULT_LOCATION = """{
 	"timezone": "Europe/Zurich"
 }"""
 
+UNDERLINE = [(0,0), (1,0)]
+
 BASE_REST_CALL = """https://routenplaner.verkehrsauskunft.at/vao/restproxy/v1.6.0/{endpoint}?accessId={api_key}&format=json"""
 #This is the dict which gets filled with infos from the rest calls
 
@@ -47,12 +49,13 @@ def main(config):
             response_dict = get_next_departures(config, response_dict)
 
         #Calculate the time until the departures
+        calculate_time_until(response_dict)
 
         cache.set("response_dict", str(response_dict), 9)
 
     response_dict = calculate_time_until(response_dict)
 
-    #print(response_dict)
+    print(response_dict["next_departure_colors"][0])
     #Render the results
     if response_dict["error"] != "No error":
         return render.Root(
@@ -71,39 +74,12 @@ def main(config):
             show_full_animation = True,
             child = render.Column(
                 children = [
-                    render.Row(
-                        children = [
-                        render.Box(
-                            color = "FFFFFF",
-                            width = 10,
-                            height = 10,
-                            ),
-                        render.Marquee(
-                            width = 64,
-                            child = render.Text(content = response_dict["stop_name"], color = "FFFFFF"),
-                            ),
-                        ]
-                    ),
-                    render.Marquee(
-                        width = 64,
-                        child = render.Text(content = response_dict["next_departure_lines"][0]
-                         + " Destination: " + response_dict["next_departure_destinations"][0],
-                         color = response_dict["next_departure_colors"][0]),
-                        ),
-                    render.Marquee(
-                        width = 64,
-                        child = render.Text(content = response_dict["next_departure_lines"][1]
-                         + " Destination: " + response_dict["next_departure_destinations"][1],
-                         color = response_dict["next_departure_colors"][1]),
-                        ),
-                    render.Marquee(
-                        width = 64,
-                        child = render.Text(content = response_dict["next_departure_lines"][3]
-                         + " Destination: " + response_dict["next_departure_destinations"][3],
-                         color = response_dict["next_departure_colors"][3]),
-                        ),
+                    render_station(response_dict),
+                    render_departure(response_dict, dep_number = 0),
+                    render_departure(response_dict, dep_number = 1),
+                    render_departure(response_dict, dep_number = 2),
                 ],
-            ),
+            )
         )
 
 
@@ -187,24 +163,41 @@ def calculate_time_until(response_dict):
 
     #Get the current time
     now = time.now()
-    #deptime = time.parse_time("2000-03-11T11:27:00.00Z")
-    print(now)
-    print(response_dict["next_departure_times"][0])
+    time_from_response = response_dict["next_departure_dates"][0] + " " + response_dict["next_departure_times"][0]
 
-    #Calculate the time until the next departures
-    #for i in range(0, len(response_dict["next_departure_times"])):
-        #Get the time of the next departure
-        #next_departure_time = response_dict["next_departure_times"][i]
-        #Calculate the time until the next departure
-        #time_until = datetime.strptime(next_departure_time, "%H:%M") - datetime.strptime(now, "%H:%M")
-        #Convert the time until the next departure to a string
-        #time_until = str(time_until)
-        #Remove the seconds from the string
-        #time_until = time_until[:-3]
-        #Add the time until the next departure to the response_dict
-        #response_dict["next_departure_times_until"].append(time_until)
+    print(now)
+    print(time_from_response)
+    if time_from_response != "No next departures":
+        deptime = time.parse_time(time_from_response, "%Y-%m-%d %H:%M:%S")
+        print(deptime)
+
+
 
     return response_dict
+
+def render_station(response_dict):
+    return render.Stack(
+                        children = [
+                            render.Plot(width = 64, height = 8, x_lim = (0,1), y_lim=(0,8), data = UNDERLINE, color = "#FFFFFF"),
+                            render.Marquee(
+                                width = 64,
+                                child = render.Text(content = response_dict["stop_name"], color = "FFFFFF"),
+                            ),
+                        ],
+                    )
+
+def render_departure(response_dict, dep_number):
+    return render.Row(
+                        children = [
+                            render.Text(content="1", color="#099"),
+                            render.Marquee(
+                                width = 64,
+                                child = render.Text(content = response_dict["next_departure_lines"][dep_number]
+                                + " Destination: " + response_dict["next_departure_destinations"][dep_number],
+                                color = response_dict["next_departure_colors"][dep_number]),
+                            ),
+                        ]
+                    )
 
 
 def get_schema():
