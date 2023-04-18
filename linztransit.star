@@ -4,6 +4,7 @@ load("http.star", "http")
 load("encoding/json.star", "json")
 load("time.star", "time")
 load("cache.star", "cache")
+load("math.star", "math")
 
 DEFAULT_LOCATION = """{
     "lat": "48.185051",
@@ -48,14 +49,14 @@ def main(config):
         if ((response_dict["error"] == "No error") and (response_dict["stop_id"] != "No stop id") and (response_dict["stop_name"] != "No stop name")):
             response_dict = get_next_departures(config, response_dict)
 
-        #Calculate the time until the departures
-        calculate_time_until(response_dict)
 
         cache.set("response_dict", str(response_dict), 9)
 
+    #print(response_dict)
+
     response_dict = calculate_time_until(response_dict)
 
-    print(response_dict["next_departure_colors"][0])
+    #print(response_dict["next_departure_colors"][0])
     #Render the results
     if response_dict["error"] != "No error":
         return render.Root(
@@ -163,15 +164,14 @@ def calculate_time_until(response_dict):
 
     #Get the current time
     now = time.now()
-    time_from_response = response_dict["next_departure_dates"][0] + " " + response_dict["next_departure_times"][0]
+    for t, d in zip(response_dict["next_departure_times"], response_dict["next_departure_dates"]):
+        index = 0
+        time_from_response = d + "T" + t
 
-    print(now)
-    print(time_from_response)
-    if time_from_response != "No next departures":
-        deptime = time.parse_time(time_from_response, "%Y-%m-%d %H:%M:%S")
-        print(deptime)
-
-
+        if time_from_response != "No next departures":
+            deptime = time.parse_time(time_from_response, "2006-01-02T15:04:05", "Europe/Berlin")
+            time_until_departure = now - deptime
+            response_dict["next_departure_times_until"][index] = time_until_departure.format("10")
 
     return response_dict
 
@@ -189,7 +189,7 @@ def render_station(response_dict):
 def render_departure(response_dict, dep_number):
     return render.Row(
                         children = [
-                            render.Text(content="1", color="#099"),
+                            render.Text(content=response_dict["next_departure_times_until"][dep_number], color="#099"),
                             render.Marquee(
                                 width = 64,
                                 child = render.Text(content = response_dict["next_departure_lines"][dep_number]
