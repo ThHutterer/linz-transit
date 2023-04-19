@@ -5,6 +5,7 @@ load("encoding/json.star", "json")
 load("time.star", "time")
 load("cache.star", "cache")
 load("math.star", "math")
+load("humanize.star", "humanize")
 
 DEFAULT_LOCATION = """{
     "lat": "48.185051",
@@ -33,7 +34,7 @@ def main(config):
         "next_departure_dates": ["No next departures"],
         "next_departure_destinations": ["No next departures"],
         "next_departure_colors": ["No next departures"],
-        "next_departure_times_until": ["No next departures"],
+        "next_departure_times_until": [],
     }
     #Check if the response_dict is cached
     response_dict_cached = cache.get("response_dict")
@@ -56,7 +57,8 @@ def main(config):
 
     response_dict = calculate_time_until(response_dict)
 
-    #print(response_dict["next_departure_colors"][0])
+    print(response_dict["next_departure_times_until"])
+
     #Render the results
     if response_dict["error"] != "No error":
         return render.Root(
@@ -164,14 +166,16 @@ def calculate_time_until(response_dict):
 
     #Get the current time
     now = time.now()
+
     for t, d in zip(response_dict["next_departure_times"], response_dict["next_departure_dates"]):
-        index = 0
         time_from_response = d + "T" + t
 
-        if time_from_response != "No next departures":
+        if time_from_response != "No next departuresTNo next departures":
             deptime = time.parse_time(time_from_response, "2006-01-02T15:04:05", "Europe/Berlin")
-            time_until_departure = now - deptime
-            response_dict["next_departure_times_until"][index] = time_until_departure.format("10")
+            duration_until_departure = humanize.relative_time(now, deptime)
+            #print(duration_until_departure)
+
+            response_dict["next_departure_times_until"].append(duration_until_departure)
 
     return response_dict
 
@@ -207,7 +211,7 @@ def get_schema():
             schema.Text(
                 id = "key",
                 name = "API key",
-                desc = "Paste your VAO API Key here",
+                desc = "Paste your VAO API Key here, you can get it from https://www.verkehrsauskunft.at/start",
                 icon = "gear",
                 default = "6703c9bf-e119-44b4-84c5-dac1a92b827e"
             ),
