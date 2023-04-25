@@ -12,19 +12,19 @@ DEFAULT_LOCATION = """{
     "lng": "16.377473",
 	"description": "Wien, Austria",
 	"locality": "Wien HBF",
-	"place_id": "xxxx",
 	"timezone": "Europe/Zurich"
 }"""
 
 UNDERLINE = [(0,0), (1,0)]
 
 BASE_REST_CALL = """https://routenplaner.verkehrsauskunft.at/vao/restproxy/v1.6.0/{endpoint}?accessId={api_key}&format=json"""
-#This is the dict which gets filled with infos from the rest calls
+
 
 
 def main(config):
     """main app function"""
 
+    #This is the dict which gets filled with infos from the rest calls
     response_dict = {
         "error": "No error",
         "stop_name": "No stop name",
@@ -36,6 +36,7 @@ def main(config):
         "next_departure_colors": ["No next departures"],
         "next_departure_times_until": [],
     }
+
     #Check if the response_dict is cached
     response_dict_cached = cache.get("response_dict")
     if response_dict_cached != None:
@@ -50,14 +51,15 @@ def main(config):
         if ((response_dict["error"] == "No error") and (response_dict["stop_id"] != "No stop id") and (response_dict["stop_name"] != "No stop name")):
             response_dict = get_next_departures(config, response_dict)
 
-
-        cache.set("response_dict", str(response_dict), 9)
-
-    #print(response_dict)
+        #If cache time is set to 900s, 100 free API calls per day are not exceeded
+        cache.set("response_dict", str(response_dict), 900)
 
     response_dict = calculate_time_until(response_dict)
 
-    print(response_dict["next_departure_times_until"])
+    response_dict = drop_missed_departures(response_dict)
+
+    #print(response_dict["next_departure_times_until"])
+
 
     #Render the results
     if response_dict["error"] != "No error":
@@ -89,7 +91,8 @@ def main(config):
 def get_stop_infos(config, response_dict):
     """gets the stop infos from the VAO API.
     Args:
-        config: is a dict from the schema"""
+        config: is a dict from the schema
+        response_dict: is a dict with the stop infos"""
 
     location = config.get("location", DEFAULT_LOCATION) 
     loc = json.decode(location)
@@ -112,21 +115,21 @@ def get_stop_infos(config, response_dict):
         return response_dict
 
     data = json.decode(response.body())
-    #if key 'stopLocationOrCoordLocation' is not in data, set response_dict["error"] to "No stop found within 1000 metres" and return
+    #if key 'stopLocationOrCoordLocation' is not in data, set response_dict["error"] to "No stop found within 1000 meters" and return
     if "stopLocationOrCoordLocation" not in data:
-        response_dict["error"] = "No stop found within 1000 metres"
+        response_dict["error"] = "No stop found within 1000 meters"
         return response_dict
     else:
         response_dict["stop_name"] = data['stopLocationOrCoordLocation'][0]['StopLocation']['name']
         response_dict["stop_id"] = data['stopLocationOrCoordLocation'][0]['StopLocation']['extId']
-    #print(response_dict)
 
     return response_dict
 
 def get_next_departures(config, response_dict):
     """gets the next departures from the VAO API.
     Args:
-        config: is a dict from the schema"""
+        config: is a dict from the schema
+        response_dict: is a dict with the stop infos"""
 
     rest_call_next_departures = BASE_REST_CALL.format(
         endpoint = "departureBoard",
@@ -144,7 +147,7 @@ def get_next_departures(config, response_dict):
         return response_dict
 
     data = json.decode(response.body())
-    #print(data)
+
     #if key 'Departure' is not in data, set response_dict["error"] to "No departures found" and return
     if "Departure" not in data:
         response_dict["error"] = "No departures found"
@@ -155,7 +158,6 @@ def get_next_departures(config, response_dict):
         response_dict["next_departure_dates"] = [entry["date"] for entry in data['Departure']]
         response_dict["next_departure_colors"] = [entry["ProductAtStop"]["icon"]["backgroundColor"]["hex"] for entry in data['Departure']]
         response_dict["next_departure_destinations"] = [entry["direction"] for entry in data['Departure']]
-    #print(response_dict)
 
     return response_dict
 
@@ -167,15 +169,25 @@ def calculate_time_until(response_dict):
     #Get the current time
     now = time.now()
 
+    #Get time and date from response dict and calculate the time until departure
+    #Format strings to only numbers in minutes
     for t, d in zip(response_dict["next_departure_times"], response_dict["next_departure_dates"]):
-        time_from_response = d + "T" + t
-
-        if time_from_response != "No next departuresTNo next departures":
+        if t != "No next departures":
+            time_from_response = d + "T" + t
             deptime = time.parse_time(time_from_response, "2006-01-02T15:04:05", "Europe/Berlin")
             duration_until_departure = humanize.relative_time(now, deptime)
-            #print(duration_until_departure)
+            #humanize.relative_time has no negative time, if now is greater than deptime, so calculate differently
+            real_time_difference = now-deptime
+            if now+real_time_difference < now: 
+                #split the string at the first space
+                print(duration_until_departure)
+                duration_until_departure = duration_until_departure.split(" ", 1)
+                if "seconds" in duration_until_departure[1]:
+                    duration_until_departure[0] = "now"
+            else:
+                duration_until_departure = ["missed departure"]
 
-            response_dict["next_departure_times_until"].append(duration_until_departure)
+            response_dict["next_departure_times_until"].append(duration_until_departure[0])
 
     return response_dict
 
@@ -185,12 +197,15 @@ def render_station(response_dict):
                             render.Plot(width = 64, height = 8, x_lim = (0,1), y_lim=(0,8), data = UNDERLINE, color = "#FFFFFF"),
                             render.Marquee(
                                 width = 64,
-                                child = render.Text(content = response_dict["stop_name"], color = "FFFFFF"),
+                                child = render.Text(content = response_dict["stop_name"], color = "FFAF0F"),
                             ),
                         ],
                     )
 
 def render_departure(response_dict, dep_number):
+
+    #handle black color info
+
     return render.Row(
                         children = [
                             render.Text(content=response_dict["next_departure_times_until"][dep_number], color="#099"),
@@ -198,11 +213,26 @@ def render_departure(response_dict, dep_number):
                                 width = 64,
                                 child = render.Text(content = response_dict["next_departure_lines"][dep_number]
                                 + " Destination: " + response_dict["next_departure_destinations"][dep_number],
-                                color = response_dict["next_departure_colors"][dep_number]),
+                                color = "#FFFFFF"),
                             ),
                         ]
                     )
 
+def drop_missed_departures(response_dict):
+    #loop through list and drop all entries with "missed departure" and all entries on the same index in other list
+    count = 0
+    for departure in response_dict["next_departure_times_until"]:
+        if departure == "missed departure":
+            count += 1
+    
+    response_dict["next_departure_lines"] = response_dict["next_departure_lines"][count:]
+    response_dict["next_departure_times"] = response_dict["next_departure_times"][count:]
+    response_dict["next_departure_dates"] = response_dict["next_departure_dates"][count:]
+    response_dict["next_departure_destinations"] = response_dict["next_departure_destinations"][count:]
+    response_dict["next_departure_colors"] = response_dict["next_departure_colors"][count:]
+    response_dict["next_departure_times_until"] = response_dict["next_departure_times_until"][count:]
+
+    return response_dict
 
 def get_schema():
     return schema.Schema(
