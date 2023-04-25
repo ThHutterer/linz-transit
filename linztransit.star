@@ -20,9 +20,14 @@ UNDERLINE = [(0,0), (1,0)]
 BASE_REST_CALL = """https://routenplaner.verkehrsauskunft.at/vao/restproxy/v1.6.0/{endpoint}?accessId={api_key}&format=json"""
 
 
-
 def main(config):
-    """main app function"""
+    """main app function
+
+    Args:
+        config: is a dict from the schema
+    Returns:
+        a render.Root object
+    """
 
     #This is the dict which gets filled with infos from the rest calls
     response_dict = {
@@ -90,9 +95,13 @@ def main(config):
 
 def get_stop_infos(config, response_dict):
     """gets the stop infos from the VAO API.
+
     Args:
         config: is a dict from the schema
-        response_dict: is a dict with the stop infos"""
+        response_dict: is a dict with the stop infos
+    Returns:
+        a dict with the stop infos
+    """
 
     location = config.get("location", DEFAULT_LOCATION) 
     loc = json.decode(location)
@@ -127,9 +136,12 @@ def get_stop_infos(config, response_dict):
 
 def get_next_departures(config, response_dict):
     """gets the next departures from the VAO API.
+
     Args:
         config: is a dict from the schema
-        response_dict: is a dict with the stop infos"""
+        response_dict: is a dict with the stop infos
+    Returns:
+        a dict with the next departures"""
 
     rest_call_next_departures = BASE_REST_CALL.format(
         endpoint = "departureBoard",
@@ -163,8 +175,11 @@ def get_next_departures(config, response_dict):
 
 def calculate_time_until(response_dict):
     """calculates the time until the next departures.
+
     Args:
-        response_dict: is a dict with the next departures"""
+        response_dict: is a dict with the next departures
+    Returns:
+        a dict with the time until the next departures"""
 
     #Get the current time
     now = time.now()
@@ -192,6 +207,12 @@ def calculate_time_until(response_dict):
     return response_dict
 
 def render_station(response_dict):
+    """renders the station name.
+
+    Args:
+        response_dict: is a dict with the stop infos
+    Returns:
+        a render object displaying the station name"""
     return render.Stack(
                         children = [
                             render.Plot(width = 64, height = 8, x_lim = (0,1), y_lim=(0,8), data = UNDERLINE, color = "#FFFFFF"),
@@ -203,9 +224,16 @@ def render_station(response_dict):
                     )
 
 def render_departure(response_dict, dep_number):
+    """renders the next departures.
 
-    #handle black color info
+    Args:
+        response_dict: is a dict with the next departures
+        dep_number: is the number of the departure to render
+    Returns:
+        a render object displaying the next departures"""
 
+    #Colors are static, as colors from VAO API are return many very black values. Black value
+    #handler is not implemented yet
     return render.Row(
                         children = [
                             render.Text(content=response_dict["next_departure_times_until"][dep_number], color="#099"),
@@ -219,6 +247,14 @@ def render_departure(response_dict, dep_number):
                     )
 
 def drop_missed_departures(response_dict):
+    """drops the missed departures so even if caching 900s is on, only future departures are shown.
+
+    Args:
+        response_dict: is a dict with the next departures
+    Returns:
+        a dict with the next departures without missed departures"""
+
+
     #loop through list and drop all entries with "missed departure" and all entries on the same index in other list
     count = 0
     for departure in response_dict["next_departure_times_until"]:
@@ -235,6 +271,7 @@ def drop_missed_departures(response_dict):
     return response_dict
 
 def get_schema():
+    """returns the schema of the app"""
     return schema.Schema(
         version = "1",
         fields = [
