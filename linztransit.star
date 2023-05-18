@@ -17,6 +17,8 @@ DEFAULT_LOCATION = """{
 
 UNDERLINE = [(0,0), (1,0)]
 
+TIMEOUT = 10
+
 BASE_REST_CALL = """https://routenplaner.verkehrsauskunft.at/vao/restproxy/v1.6.0/{endpoint}?accessId={api_key}&format=json"""
 
 
@@ -42,29 +44,17 @@ def main(config):
         "next_departure_times_until": [],
     }
 
-    #Check if the response_dict is cached
-    response_dict_cached = cache.get("response_dict")
-    if response_dict_cached != None:
-        print("Using cached response_dict")
-        response_dict = json.decode(response_dict_cached)
-    else:
-        print("Performing new API calls")
-        #Get the infos of the nearest stop
-        response_dict = get_stop_infos(config, response_dict)
 
-        #Get the next departures if stop was found
-        if ((response_dict["error"] == "No error") and (response_dict["stop_id"] != "No stop id") and (response_dict["stop_name"] != "No stop name")):
-            response_dict = get_next_departures(config, response_dict)
+    #Get the infos of the nearest stop
+    response_dict = get_stop_infos(config, response_dict)
 
-        #If cache time is set to 900s, 100 free API calls per day are not exceeded
-        cache.set("response_dict", str(response_dict), 900)
+    #Get the next departures if stop was found
+    if ((response_dict["error"] == "No error") and (response_dict["stop_id"] != "No stop id") and (response_dict["stop_name"] != "No stop name")):
+        response_dict = get_next_departures(config, response_dict)
 
     response_dict = calculate_time_until(response_dict)
 
     response_dict = drop_missed_departures(response_dict)
-
-    #print(response_dict["next_departure_times_until"])
-
 
     #Render the results
     if response_dict["error"] != "No error":
@@ -73,7 +63,7 @@ def main(config):
                 children = [
                     render.WrappedText(
                         content = response_dict["error"],
-                        color = "#FFFFFF",
+                        color = "#FF000C",
                         align = "left",
                         )
                 ]
@@ -114,11 +104,10 @@ def get_stop_infos(config, response_dict):
         long = loc["lng"],
         maxNo = "1"
     )
-    #print(rest_call_stop_info)
 
-    response = http.get(url = rest_call_stop_info)
+    response = http.get(url = rest_call_stop_info, ttl_seconds = TIMEOUT)
     if response.status_code != 200:
-        response_dict["error"] = "Stopfinder request failed with status {statuscode}".format(
+        response_dict["error"] = "Error code {statuscode} when trying to find nearby stops".format(
             statuscode = response.status_code
         )
         return response_dict
@@ -149,11 +138,10 @@ def get_next_departures(config, response_dict):
     ) + "&id={stop_id}".format(
         stop_id = response_dict["stop_id"],
     )
-    #print(rest_call_next_departures)
 
-    response = http.get(url = rest_call_next_departures)
+    response = http.get(url = rest_call_next_departures, ttl_seconds = TIMEOUT)
     if response.status_code != 200:
-        response_dict["error"] = "Departurefinder request failed with status {statuscode}".format(
+        response_dict["error"] = "Error code {statuscode} when trying to find departures".format(
             statuscode = response.status_code
         )
         return response_dict
@@ -195,7 +183,6 @@ def calculate_time_until(response_dict):
             real_time_difference = now-deptime
             if now+real_time_difference < now: 
                 #split the string at the first space
-                print(duration_until_departure)
                 duration_until_departure = duration_until_departure.split(" ", 1)
                 if "seconds" in duration_until_departure[1]:
                     duration_until_departure[0] = "now"
