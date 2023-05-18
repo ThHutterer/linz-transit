@@ -41,7 +41,9 @@ def main(config):
         "next_departure_colors": ["No next departures"],
         "next_departure_times_until": [],
     }
-    timeout = 900
+
+    #If the timeout is set to 900s, it won't run out of free api calls
+    timeout = 1
 
     #Get the infos of the nearest stop
     response_dict = get_stop_infos(config, response_dict, timeout)
