@@ -58,17 +58,8 @@ def main(config):
 
     #Render the results
     if response_dict["error"] != "No error":
-        return render.Root(
-            child = render.Row(
-                children = [
-                    render.WrappedText(
-                        content = response_dict["error"],
-                        color = "#FF000C",
-                        align = "left",
-                        )
-                ]
-            )
-        )
+        return render_error(response_dict)
+
     else:
         return render.Root(
             show_full_animation = True,
@@ -233,6 +224,26 @@ def render_departure(response_dict, dep_number):
                         ]
                     )
 
+def render_error(response_dict):
+    """renders the error message.
+
+    Args:
+        response_dict: is a dict with the error message
+    Returns:
+        a render object displaying the error message"""
+    
+    return render.Root(
+            child = render.Row(
+                children = [
+                    render.WrappedText(
+                        content = response_dict["error"],
+                        color = "#FF000C",
+                        align = "left",
+                        )
+                ]
+            )
+        )
+
 def drop_missed_departures(response_dict):
     """drops the missed departures so even if caching 900s is on, only future departures are shown.
 
@@ -240,7 +251,6 @@ def drop_missed_departures(response_dict):
         response_dict: is a dict with the next departures
     Returns:
         a dict with the next departures without missed departures"""
-
 
     #loop through list and drop all entries with "missed departure" and all entries on the same index in other list
     count = 0
