@@ -26,8 +26,6 @@ UNDERLINE = [(0,0), (1,0)]
 TIMEOUT = 10
 BASE_REST_CALL = """https://routenplaner.verkehrsauskunft.at/vao/restproxy/v1.6.0/{endpoint}?accessId={api_key}&format=json"""
 
-
-
 def main(config):
     """main app function
 
@@ -84,8 +82,13 @@ def main(config):
 
         return render.Root(
             show_full_animation = True,
-            child = render.Column(
-                children = render_children,
+            child = render.Stack(
+                children = [
+                    render.Box(width = 64, height = 32, color = "#1901de"),
+                    render.Column(
+                        children = render_children
+                    )
+                ]
             )
         )
 
@@ -211,7 +214,7 @@ def render_station(response_dict):
         a render object displaying the station name"""
     return render.Stack(
         children = [
-            render.Box(width = 64, height = 8, color = "#1901de"),
+            #render.Box(width = 64, height = 32, color = "#1901de"),
             render.Plot(width = 64, height = 8, x_lim = (0,1), y_lim=(0,8), data = UNDERLINE, color = "#FFFFFF"),
             render.Marquee(
                 width = 64,
