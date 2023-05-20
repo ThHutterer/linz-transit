@@ -1,3 +1,10 @@
+"""
+Applet: OPNV Austria
+Summary: Austria public transport departure times from any stop 
+Description: Next departures from any stop in Austria. Uses the VAO API. https://www.verkehrsauskunft.at/start"
+Author: Thomas Hutterer
+"""
+
 load("render.star", "render")
 load("schema.star", "schema")
 load("http.star", "http")
@@ -7,6 +14,7 @@ load("cache.star", "cache")
 load("math.star", "math")
 load("humanize.star", "humanize")
 
+DEFAULT_KEY = None
 DEFAULT_LOCATION = """{
     "lat": "48.185051",
     "lng": "16.377473",
@@ -14,12 +22,10 @@ DEFAULT_LOCATION = """{
 	"locality": "Wien HBF",
 	"timezone": "Europe/Zurich"
 }"""
-
 UNDERLINE = [(0,0), (1,0)]
-
 TIMEOUT = 10
-
 BASE_REST_CALL = """https://routenplaner.verkehrsauskunft.at/vao/restproxy/v1.6.0/{endpoint}?accessId={api_key}&format=json"""
+
 
 
 def main(config):
@@ -44,18 +50,27 @@ def main(config):
         "next_departure_times_until": [],
     }
 
-    #Get the infos of the nearest stop
-    response_dict = get_stop_infos(config, response_dict)
+    #Render a preview if no API key is set
+    if config.get("key", DEFAULT_KEY) == None:
+        response_dict["stop_name"] = "Wien Westbahnhof (preview)"
+        response_dict["next_departure_lines"] = ["U1", "U2", "U3"]
+        response_dict["next_departure_destinations"] = ["Leopoldau", "Seestadt", "Ottakring"]
+        response_dict["next_departure_colors"] = ["#FF0000", "#FF0000", "#FF0000"]
+        response_dict["next_departure_times_until"] = ["1", "2", "3"]
 
-    #Get the next departures if stop was found
-    if ((response_dict["error"] == "No error") and (response_dict["stop_id"] != "No stop id") and (response_dict["stop_name"] != "No stop name")):
-        response_dict = get_next_departures(config, response_dict)
+    else:
+        #Get the infos of the nearest stop
+        response_dict = get_stop_infos(config, response_dict)
 
-    #Calculate the time until the next departures
-    response_dict = calculate_time_until(response_dict)
+        #Get the next departures if stop was found
+        if ((response_dict["error"] == "No error") and (response_dict["stop_id"] != "No stop id") and (response_dict["stop_name"] != "No stop name")):
+            response_dict = get_next_departures(config, response_dict)
 
-    #Drop the missed departures from the last cached response
-    response_dict = drop_missed_departures(response_dict)
+        #Calculate the time until the next departures
+        response_dict = calculate_time_until(response_dict)
+
+        #Drop the missed departures from the last cached response
+        response_dict = drop_missed_departures(response_dict)
 
     #Render the results
     if response_dict["error"] != "No error":
@@ -89,13 +104,14 @@ def get_stop_infos(config, response_dict):
 
     rest_call_stop_info = BASE_REST_CALL.format(
         endpoint = "location.nearbystops",
-        api_key = config.get("key")
+        api_key = config.get("key", DEFAULT_KEY)
     ) + "&originCoordLat={lat}&originCoordLong={long}&maxNo{maxNo}".format(
         lat = loc["lat"],
         long = loc["lng"],
         maxNo = "1"
     )
-
+    #remove whitespaces from rest_call_stop_info, because API doesn't throw 400 error, but app crashes
+    rest_call_stop_info = rest_call_stop_info.replace(" ", "")
     response = http.get(url = rest_call_stop_info, ttl_seconds = TIMEOUT)
     if response.status_code != 200:
         response_dict["error"] = "Error code {statuscode} when trying to find nearby stops".format(
@@ -126,11 +142,12 @@ def get_next_departures(config, response_dict):
 
     rest_call_next_departures = BASE_REST_CALL.format(
         endpoint = "departureBoard",
-        api_key = config.get("key")
+        api_key = config.get("key", DEFAULT_KEY)
     ) + "&id={stop_id}".format(
         stop_id = response_dict["stop_id"],
     )
-
+    #remove whitespaces from rest_call_stop_info, because API doesn't throw 400 error, but app crashes
+    rest_call_next_departures = rest_call_next_departures.replace(" ", "")
     response = http.get(url = rest_call_next_departures, ttl_seconds = TIMEOUT)
     if response.status_code != 200:
         response_dict["error"] = "Error code {statuscode} when trying to find departures".format(
@@ -193,14 +210,15 @@ def render_station(response_dict):
     Returns:
         a render object displaying the station name"""
     return render.Stack(
-                        children = [
-                            render.Plot(width = 64, height = 8, x_lim = (0,1), y_lim=(0,8), data = UNDERLINE, color = "#FFFFFF"),
-                            render.Marquee(
-                                width = 64,
-                                child = render.Text(content = response_dict["stop_name"], color = "FFAF0F"),
-                            ),
-                        ],
-                    )
+        children = [
+            render.Box(width = 64, height = 8, color = "#1901de"),
+            render.Plot(width = 64, height = 8, x_lim = (0,1), y_lim=(0,8), data = UNDERLINE, color = "#FFFFFF"),
+            render.Marquee(
+                width = 64,
+                child = render.Text(content = response_dict["stop_name"], color = "cedb99"),
+            ),
+        ],
+    )
 
 def render_departure(response_dict, dep_number):
     """renders the next departures.
@@ -213,17 +231,26 @@ def render_departure(response_dict, dep_number):
 
     #Colors are static, as colors from VAO API are return many very black values. Black value
     #handler is not implemented yet
-    return render.Row(
-                        children = [
-                            render.Text(content=response_dict["next_departure_times_until"][dep_number], color="#099"),
-                            render.Marquee(
-                                width = 64,
-                                child = render.Text(content = response_dict["next_departure_lines"][dep_number]
-                                + " Destination: " + response_dict["next_departure_destinations"][dep_number],
-                                color = "#FFFFFF"),
-                            ),
-                        ]
+ 
+    line_background_color = "1c00fd"
+    if dep_number %2 == 1:
+        line_background_color = "#0f01a8"
+    return render.Stack(
+        children = [
+            render.Box(width = 64, height = 8, color = line_background_color),
+            render.Row(
+                children = [
+                    render.Text(content=response_dict["next_departure_times_until"][dep_number], color="#FFFFFF"),
+                    render.Marquee(
+                        width = 64,
+                        child = render.Text(content = response_dict["next_departure_lines"][dep_number]
+                        + " Destination: " + response_dict["next_departure_destinations"][dep_number],
+                        color = "#FFFFFF"),
                     )
+                ]
+            )
+        ]
+    )
 
 def render_error(response_dict):
     """renders the error message.
@@ -277,7 +304,7 @@ def get_schema():
                 id = "key",
                 name = "API key",
                 desc = "Paste your VAO API Key here, you can get it from https://www.verkehrsauskunft.at/start",
-                icon = "gear"
+                icon = "key"
             ),
             schema.Location(
                 id = "location",
