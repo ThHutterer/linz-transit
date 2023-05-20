@@ -57,7 +57,7 @@ def main(config):
     #Drop the missed departures from the last cached response
     response_dict = drop_missed_departures(response_dict)
 
-    #Render the results 47.886850, 13.940752
+    #Render the results
     if response_dict["error"] != "No error":
         return render_error(response_dict)
 
