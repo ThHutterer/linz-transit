@@ -52,8 +52,11 @@ def main(config):
     if ((response_dict["error"] == "No error") and (response_dict["stop_id"] != "No stop id") and (response_dict["stop_name"] != "No stop name")):
         response_dict = get_next_departures(config, response_dict)
 
+
+    #Calculate the time until the next departures
     response_dict = calculate_time_until(response_dict)
 
+    #Drop the missed departures from the last cached response
     response_dict = drop_missed_departures(response_dict)
 
     #Render the results
@@ -61,15 +64,15 @@ def main(config):
         return render_error(response_dict)
 
     else:
+        #prepare data to only show the next 3 departures
+        how_many_departures = min(3,len(response_dict["next_departure_times_until"]))
+        render_children = [render_departure(response_dict, dep_number = i) for i in range(how_many_departures)]
+        render_children.insert(0,render_station(response_dict))
+
         return render.Root(
             show_full_animation = True,
             child = render.Column(
-                children = [
-                    render_station(response_dict),
-                    render_departure(response_dict, dep_number = 0),
-                    render_departure(response_dict, dep_number = 1),
-                    render_departure(response_dict, dep_number = 2),
-                ],
+                children = render_children,
             )
         )
 
@@ -104,6 +107,7 @@ def get_stop_infos(config, response_dict):
         return response_dict
 
     data = json.decode(response.body())
+
     #if key 'stopLocationOrCoordLocation' is not in data, set response_dict["error"] to "No stop found within 1000 meters" and return
     if "stopLocationOrCoordLocation" not in data:
         response_dict["error"] = "No stop found within 1000 meters"
