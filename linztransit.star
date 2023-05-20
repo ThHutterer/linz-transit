@@ -44,7 +44,6 @@ def main(config):
         "next_departure_times_until": [],
     }
 
-
     #Get the infos of the nearest stop
     response_dict = get_stop_infos(config, response_dict)
 
@@ -52,14 +51,13 @@ def main(config):
     if ((response_dict["error"] == "No error") and (response_dict["stop_id"] != "No stop id") and (response_dict["stop_name"] != "No stop name")):
         response_dict = get_next_departures(config, response_dict)
 
-
     #Calculate the time until the next departures
     response_dict = calculate_time_until(response_dict)
 
     #Drop the missed departures from the last cached response
     response_dict = drop_missed_departures(response_dict)
 
-    #Render the results
+    #Render the results 47.886850, 13.940752
     if response_dict["error"] != "No error":
         return render_error(response_dict)
 
@@ -75,7 +73,6 @@ def main(config):
                 children = render_children,
             )
         )
-
 
 def get_stop_infos(config, response_dict):
     """gets the stop infos from the VAO API.
